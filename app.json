@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "AssetManager",
+    "name": "Asset Manager",
     "slug": "AssetManager",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -14,9 +14,14 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#0d6efd"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.CAMERA"
+      ],
+      "package": "com.jacklrpendleton.AssetManager"
     },
     "web": {
       "bundler": "metro",
@@ -31,12 +36,18 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
+          "backgroundColor": "#212529"
         }
       ]
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "7be0003c-9a98-49ee-9d24-4b3a474d9382"
+      }
     }
   }
 }
