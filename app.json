@@ -2,8 +2,8 @@
   "expo": {
     "name": "Asset Manager",
     "slug": "AssetManager",
-    "version": "1.0.0",
-    "orientation": "portrait",
+    "version": "1.1.0",
+    "orientation": "default",
     "icon": "./assets/images/icon.png",
     "scheme": "assetmanager",
     "userInterfaceStyle": "automatic",
@@ -37,6 +37,12 @@
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#212529"
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "recordAudioAndroid": false
         }
       ]
     ],

@@ -1,6 +1,7 @@
 import eventBus from '@/lib/eventBus';
+import { MaterialCommunityIcons } from '@expo/vector-icons'; // <-- NEW
 import { BarcodeScanningResult, CameraView, useCameraPermissions } from 'expo-camera';
-import * as Haptics from 'expo-haptics'; // <-- import haptics
+import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useState } from 'react';
 import { Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -14,6 +15,7 @@ type Props = {
 export const ScannerModal: React.FC<Props> = ({ visible, onClose, onScan }) => {
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
+  const [torchEnabled, setTorchEnabled] = useState(false); // <-- NEW
   const router = useRouter();
 
   useEffect(() => {
@@ -23,6 +25,7 @@ export const ScannerModal: React.FC<Props> = ({ visible, onClose, onScan }) => {
         await requestPermission();
       }
       setScanned(false);
+      setTorchEnabled(false); // reset torch when opening, optional
     })();
   }, [visible, permission?.granted, requestPermission]);
 
@@ -31,7 +34,6 @@ export const ScannerModal: React.FC<Props> = ({ visible, onClose, onScan }) => {
       if (scanned) return;
       setScanned(true);
 
-      // Trigger haptic feedback vibration
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 
       eventBus.emit('barcode-scanned', data);
@@ -47,6 +49,10 @@ export const ScannerModal: React.FC<Props> = ({ visible, onClose, onScan }) => {
     router.replace('/assets');
     onClose();
   }, [router, onClose]);
+
+  const toggleTorch = useCallback(() => {
+    setTorchEnabled((t) => !t);
+  }, []);
 
   if (!visible) return null;
 
@@ -64,6 +70,7 @@ export const ScannerModal: React.FC<Props> = ({ visible, onClose, onScan }) => {
             <CameraView
               style={StyleSheet.absoluteFillObject}
               facing="back"
+              enableTorch={torchEnabled} // <-- CHANGED
               onBarcodeScanned={scanned ? undefined : handleBarCodeScanned}
               barcodeScannerSettings={{
                 barcodeTypes: ['datamatrix'],
@@ -79,6 +86,15 @@ export const ScannerModal: React.FC<Props> = ({ visible, onClose, onScan }) => {
               </View>
               <View style={styles.overlayRow} />
             </View>
+
+            {/* Torch toggle button */}
+            <TouchableOpacity onPress={toggleTorch} style={styles.torchBtn}>
+              <MaterialCommunityIcons
+                name={torchEnabled ? 'flashlight' : 'flashlight-off'}
+                size={22}
+                color="#fff"
+              />
+            </TouchableOpacity>
           </View>
         )}
 
@@ -94,7 +110,7 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   closeBtn: {
     position: 'absolute',
-    top: 40,
+    top: 20,
     right: 20,
     backgroundColor: '#00000088',
     paddingHorizontal: 16,
@@ -102,6 +118,15 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   closeText: { color: '#fff', fontWeight: '600' },
+  torchBtn: {
+    position: 'absolute',
+    top: 20,
+    left: 20,
+    backgroundColor: '#00000088',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
   overlay: { flex: 1, justifyContent: 'space-between' },
   overlayRow: { flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.5)' },
   overlayCenterRow: { flexDirection: 'row', height: 200 },

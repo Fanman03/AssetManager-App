@@ -59,7 +59,6 @@ export default function AssetsScreen() {
                 }
 
                 const finalUrl = joinUrl(base, slug);
-                console.log(finalUrl)
                 setUrl(finalUrl); // this will re-render and navigate the WebView
             } catch (e) {
                 console.error(e);
@@ -124,12 +123,15 @@ export default function AssetsScreen() {
                     <Text
                         style={[
                             styles.buttonText,
-                            colorScheme === 'dark' ? styles.textDark : styles.textLight,
+                            colorScheme === 'dark' ? styles.buttonDark : styles.buttonLight,
                         ]}
                     >
                         Back to Asset List
                     </Text>
                 </Pressable>
+                <Text style={[styles.errorDesc, colorScheme === 'dark' ? styles.textLight : styles.textDark]}>
+                    Requested URL:{"\n"}{url}
+                </Text>
             </View>
         );
     }
@@ -177,6 +179,12 @@ const styles = StyleSheet.create({
         marginBottom: 24,
         textAlign: 'center',
     },
+    errorDesc: {
+        fontSize: 16,
+        fontWeight: '600',
+        marginTop: 24,
+        textAlign: 'center',
+    },
     textLight: {
         color: '#f8f9fa', // Bootstrap light text
     },
@@ -195,10 +203,12 @@ const styles = StyleSheet.create({
     buttonLight: {
         backgroundColor: '#0d6efd', // Bootstrap primary blue
         borderColor: '#0d6efd',
+        color: '#ffffff'
     },
     buttonDark: {
         backgroundColor: '#0d6efd',
         borderColor: '#0d6efd',
+        color: '#ffffff'
     },
     buttonPressed: {
         opacity: 0.8,
