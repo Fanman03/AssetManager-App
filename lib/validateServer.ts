@@ -1,6 +1,5 @@
 export type MobileInfoResponse = {
   isAppCompatible?: boolean;
-  // ...add other fields you may return
 };
 
 export async function validateServer(url: string): Promise<boolean> {

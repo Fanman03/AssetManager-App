@@ -1,15 +1,15 @@
+import BootstrapButton from '@/components/BootstrapButton';
 import eventBus from '@/lib/eventBus';
 import { getServerUrl } from '@/lib/storage';
 import React, { useEffect, useRef, useState } from 'react';
 import {
     BackHandler,
     Platform,
-    Pressable,
     StatusBar,
     StyleSheet,
     Text,
     useColorScheme,
-    View,
+    View
 } from 'react-native';
 import { WebView } from 'react-native-webview';
 
@@ -105,7 +105,10 @@ export default function AssetsScreen() {
                 >
                     Unable to load asset.
                 </Text>
-                <Pressable
+                <BootstrapButton
+                    variant="primary"
+                    size="md"
+                    style={{ alignSelf: 'center' }}
                     onPress={async () => {
                         const saved = await getServerUrl();
                         if (saved) {
@@ -114,21 +117,9 @@ export default function AssetsScreen() {
                             setError(null);
                         }
                     }}
-                    style={({ pressed }) => [
-                        styles.button,
-                        colorScheme === 'dark' ? styles.buttonDark : styles.buttonLight,
-                        pressed && styles.buttonPressed,
-                    ]}
                 >
-                    <Text
-                        style={[
-                            styles.buttonText,
-                            colorScheme === 'dark' ? styles.buttonDark : styles.buttonLight,
-                        ]}
-                    >
-                        Back to Asset List
-                    </Text>
-                </Pressable>
+                    Back to Asset List
+                </BootstrapButton>
                 <Text style={[styles.errorDesc, colorScheme === 'dark' ? styles.textLight : styles.textDark]}>
                     Requested URL:{"\n"}{url}
                 </Text>

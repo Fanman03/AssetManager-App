@@ -21,7 +21,8 @@ export default function TabLayout() {
           tabBarInactiveTintColor: isDark ? '#adb5bd' : '#6c757d',
           tabBarStyle: {
             backgroundColor: isDark ? '#212529' : '#fff',
-            borderTopWidth: 0,
+            borderTopWidth: 1,
+            borderColor: isDark ? '#495057' : '#dee2e6',
             elevation: 0,
             shadowOpacity: 0,
           },

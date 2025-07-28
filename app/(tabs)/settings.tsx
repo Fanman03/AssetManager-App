@@ -1,9 +1,10 @@
+import BootstrapButton from '@/components/BootstrapButton';
 import eventBus from '@/lib/eventBus';
 import { clearServerUrl, getServerUrl } from '@/lib/storage';
 import Constants from 'expo-constants';
 import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, useColorScheme, View } from 'react-native';
+import { ActivityIndicator, Alert, Image, StyleSheet, Text, useColorScheme, View } from 'react-native';
 
 type ServerInfo = { version?: string };
 
@@ -79,21 +80,31 @@ export default function SettingsScreen() {
 
     return (
         <View style={[styles.container, isDark ? styles.bgDark : styles.bgLight]}>
+            <View style={styles.header}>
+                <Image
+                    source={require('@/assets/images/icon.png')}
+                    style={styles.appIcon}
+                    resizeMode="contain"
+                />
+                <View>
+                    <Text style={[styles.headerText, isDark ? styles.textLight : styles.textDark]}>
+                        Asset Manager
+                    </Text>
+                    <Text style={[styles.headerSubtext, isDark ? styles.textLight : styles.textDark]}>
+                        by Jack Pendleton
+                    </Text>
+                </View>
+            </View>
             <Text style={[styles.title, isDark ? styles.textLight : styles.textDark]}>
                 App Settings
             </Text>
-            <Pressable
+            <BootstrapButton
+                variant="danger"
+                size="md"
                 onPress={onResetPress}
-                style={({ pressed }) => [
-                    styles.buttonDanger,
-                    isDark ? styles.buttonDark : styles.buttonLight,
-                    pressed && styles.buttonPressed,
-                ]}
             >
-                <Text style={[styles.buttonText, isDark ? styles.textLight : styles.textLight]}>
-                    Reset Server URL
-                </Text>
-            </Pressable>
+                Reset Server URL
+            </BootstrapButton>
             <Text style={[styles.version, isDark ? styles.textLight : styles.textDark]}>
                 Client Version: v{clientVersion}
             </Text>
@@ -101,18 +112,13 @@ export default function SettingsScreen() {
             <Text style={[styles.title, isDark ? styles.textLight : styles.textDark]}>
                 Server Settings
             </Text>
-            <Pressable
+            <BootstrapButton
+                variant="primary"
+                size="md"
                 onPress={onSettingsPress}
-                style={({ pressed }) => [
-                    styles.buttonPrimary,
-                    isDark ? styles.buttonDark : styles.buttonLight,
-                    pressed && styles.buttonPressed,
-                ]}
             >
-                <Text style={[styles.buttonText, isDark ? styles.textLight : styles.textLight]}>
-                    Open Server Settings
-                </Text>
-            </Pressable>
+                Open Server Settings
+            </BootstrapButton>
 
             {loadingServerVersion ? (
                 <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}>
@@ -135,6 +141,24 @@ export default function SettingsScreen() {
 }
 
 const styles = StyleSheet.create({
+    header: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 20,
+    },
+    appIcon: {
+        width: 60,
+        height: 60,
+        marginRight: 10,
+        borderRadius: 8,
+    },
+    headerText: {
+        fontSize: 24,
+        fontWeight: '700'
+    },
+    headerSubtext: {
+        marginTop: -4
+    },
     container: {
         flex: 1,
         justifyContent: 'center',
@@ -146,34 +170,6 @@ const styles = StyleSheet.create({
     bgDark: {
         backgroundColor: '#212529',
     },
-    buttonPrimary: {
-        paddingVertical: 12,
-        paddingHorizontal: 28,
-        borderRadius: 6,
-        borderWidth: 1,
-        borderColor: '#0d6efd',
-        backgroundColor: '#0d6efd',
-        alignItems: 'center',
-    },
-    buttonDanger: {
-        paddingVertical: 12,
-        paddingHorizontal: 28,
-        borderRadius: 6,
-        borderWidth: 1,
-        borderColor: '#dc3545',
-        backgroundColor: '#dc3545',
-        alignItems: 'center',
-    },
-    buttonLight: {},
-    buttonDark: {},
-    buttonPressed: {
-        opacity: 0.8,
-    },
-    buttonText: {
-        fontWeight: '600',
-        fontSize: 16,
-        color: '#fff',
-    },
     textLight: {
         color: '#f8f9fa',
     },
@@ -182,11 +178,10 @@ const styles = StyleSheet.create({
     },
     title: {
         fontSize: 30,
-        marginVertical: 16,
+        marginTop: 16,
         fontWeight: '600',
     },
     version: {
-        marginTop: 8,
         fontSize: 14,
         fontWeight: '500',
     },

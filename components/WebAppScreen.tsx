@@ -15,7 +15,6 @@ export const WebAppScreen: React.FC<Props> = ({ serverUrl, onResetUrl }) => {
 
   const injectedThemeJS = useMemo(() => {
     // Make Bootstrap (v5.3+) respect system via data-bs-theme
-    // You can also push this into your page natively; doing it here guarantees it.
     return `
       (function() {
         try {
@@ -30,10 +29,7 @@ export const WebAppScreen: React.FC<Props> = ({ serverUrl, onResetUrl }) => {
   }, [colorScheme]);
 
   const onMessage = (e: WebViewMessageEvent) => {
-    // In case your webapp wants to talk back
     const payload = e.nativeEvent.data;
-    // You could implement commands like: {"type":"reset-url"} etc.
-    // For now, we just log or handle special cases:
     if (payload === 'reset-url') {
       Alert.alert('Reset URL', 'Are you sure?', [
         { text: 'Cancel', style: 'cancel' },
