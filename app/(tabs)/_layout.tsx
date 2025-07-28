@@ -1,4 +1,5 @@
 // app/_layout.tsx
+import eventBus from '@/lib/eventBus';
 import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
 import React from 'react';
@@ -41,6 +42,11 @@ export default function TabLayout() {
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="list-outline" size={size} color={color} />
           ),
+        }}
+        listeners={{
+          tabPress: () => {
+            eventBus.emit('assets-tab-pressed');
+          },
         }}
       />
       <Tabs.Screen

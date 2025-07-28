@@ -21,7 +21,8 @@
         "android.permission.CAMERA",
         "android.permission.CAMERA"
       ],
-      "package": "com.jacklrpendleton.AssetManager"
+      "package": "com.jacklrpendleton.AssetManager",
+      "versionCode": 2
     },
     "web": {
       "bundler": "metro",

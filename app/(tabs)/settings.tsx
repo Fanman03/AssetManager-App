@@ -6,7 +6,7 @@ import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Image, StyleSheet, Text, useColorScheme, View } from 'react-native';
 
-type ServerInfo = { version?: string };
+type ServerInfo = { version?: string, appName?: string };
 
 export default function SettingsScreen() {
     const colorScheme = useColorScheme();
@@ -20,6 +20,7 @@ export default function SettingsScreen() {
         'unknown';
 
     const [serverVersion, setServerVersion] = useState<string | null>(null);
+    const [serverName, setServerName] = useState<string | null>(null);
     const [serverErr, setServerErr] = useState<string | null>(null);
     const [loadingServerVersion, setLoadingServerVersion] = useState<boolean>(true);
 
@@ -45,11 +46,13 @@ export default function SettingsScreen() {
                 const json: ServerInfo = await res.json();
                 if (!cancelled) {
                     setServerVersion(json.version ?? 'unknown');
+                    setServerName(json.appName ?? 'unknown');
                 }
             } catch (e: any) {
                 if (!cancelled) {
                     setServerErr(e?.message ?? 'Failed to load');
                     setServerVersion(null);
+                    setServerName(null);
                 }
             } finally {
                 if (!cancelled) setLoadingServerVersion(false);
@@ -124,7 +127,7 @@ export default function SettingsScreen() {
                 <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}>
                     <ActivityIndicator size="small" color={isDark ? '#f8f9fa' : '#212529'} />
                     <Text style={[styles.version, isDark ? styles.textLight : styles.textDark, { marginLeft: 8 }]}>
-                        Fetching server version…
+                        Fetching server info
                     </Text>
                 </View>
             ) : serverErr ? (
@@ -132,9 +135,15 @@ export default function SettingsScreen() {
                     Server Version: {serverErr}
                 </Text>
             ) : (
-                <Text style={[styles.version, isDark ? styles.textLight : styles.textDark]}>
-                    Server Version: v{serverVersion}
-                </Text>
+                <>
+                    <Text style={[styles.version, isDark ? styles.textLight : styles.textDark]}>
+                        Server Name: {serverName}
+                    </Text>
+                    <Text style={[styles.version, isDark ? styles.textLight : styles.textDark]}>
+                        Server Version: v{serverVersion}
+                    </Text>
+                </>
+
             )}
         </View>
     );

@@ -20,6 +20,7 @@ export default function AssetsScreen() {
     const [serverUrl, setServerUrl] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [canGoBack, setCanGoBack] = useState(false);
+    const baseUrlRef = useRef<string | null>(null);
 
     // Load saved server URL on mount
     useEffect(() => {
@@ -28,9 +29,26 @@ export default function AssetsScreen() {
             if (saved) {
                 setServerUrl(saved);
                 setUrl(saved);
+                baseUrlRef.current = saved;
             }
         })();
     }, []);
+
+    // When the Assets tab is pressed, go back to the main URL
+    useEffect(() => {
+        const handler = () => {
+            const target = baseUrlRef.current ?? serverUrl ?? url;
+            if (!target) return;
+            setError(null);
+            setCanGoBack(false);
+            setUrl(target);
+            // optional hard refresh:
+            // webRef.current?.stopLoading();
+            // webRef.current?.reload();
+        };
+        eventBus.on('assets-tab-pressed', handler);
+        return () => eventBus.off('assets-tab-pressed', handler);
+    }, [serverUrl, url]);
 
     // Helper to safely join base + path with a single slash
     const joinUrl = (base: string, path: string) => {
