@@ -2,14 +2,21 @@
   "expo": {
     "name": "Asset Manager",
     "slug": "AssetManager",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "orientation": "default",
     "icon": "./assets/images/icon.png",
     "scheme": "assetmanager",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "bundleIdentifier": "com.jacklrpendleton.AssetManager",
+      "supportsTablet": true,
+      "icon": {
+        "light": "./assets/images/icon.png",
+        "dark": "./assets/images/adaptive-icon.png",
+        "tinted": "./assets/images/icon-tinted.png"
+      },
+      "buildNumber": "1.2.0"
     },
     "android": {
       "adaptiveIcon": {
@@ -19,15 +26,23 @@
       "edgeToEdgeEnabled": true,
       "permissions": [
         "android.permission.CAMERA",
-        "android.permission.CAMERA"
+        "android.permission.WRITE_EXTERNAL_STORAGE"
       ],
       "package": "com.jacklrpendleton.AssetManager",
-      "versionCode": 2
+      "versionCode": 3
     },
     "web": {
       "bundler": "metro",
       "output": "static",
       "favicon": "./assets/images/favicon.png"
+    },
+    "cli": {
+      "appVersionSource": "remote"
+    },
+    "build": {
+      "production": {
+        "autoIncrement": false
+      }
     },
     "plugins": [
       "expo-router",

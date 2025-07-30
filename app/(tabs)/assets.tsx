@@ -1,6 +1,8 @@
 import BootstrapButton from '@/components/BootstrapButton';
 import eventBus from '@/lib/eventBus';
 import { getServerUrl } from '@/lib/storage';
+import * as FileSystem from 'expo-file-system';
+import * as MediaLibrary from 'expo-media-library';
 import React, { useEffect, useRef, useState } from 'react';
 import {
     BackHandler,
@@ -11,7 +13,7 @@ import {
     useColorScheme,
     View
 } from 'react-native';
-import { WebView } from 'react-native-webview';
+import { WebView, WebViewMessageEvent } from 'react-native-webview';
 
 export default function AssetsScreen() {
     const colorScheme = useColorScheme();
@@ -20,6 +22,7 @@ export default function AssetsScreen() {
     const [serverUrl, setServerUrl] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [canGoBack, setCanGoBack] = useState(false);
+    const [reloadKey, setReloadKey] = useState(0); // Force WebView remount
     const baseUrlRef = useRef<string | null>(null);
 
     // Load saved server URL on mount
@@ -39,16 +42,19 @@ export default function AssetsScreen() {
         const handler = () => {
             const target = baseUrlRef.current ?? serverUrl ?? url;
             if (!target) return;
-            setError(null);
-            setCanGoBack(false);
-            setUrl(target);
-            // optional hard refresh:
-            // webRef.current?.stopLoading();
-            // webRef.current?.reload();
+            navigateToBase(target);
         };
+
         eventBus.on('assets-tab-pressed', handler);
         return () => eventBus.off('assets-tab-pressed', handler);
-    }, [serverUrl, url]);
+    }, [serverUrl]);
+
+    const navigateToBase = (target: string) => {
+        setUrl(target);
+        setReloadKey(prev => prev + 1); // Force WebView to remount
+        setError(null);
+        setCanGoBack(false);
+    };
 
     // Helper to safely join base + path with a single slash
     const joinUrl = (base: string, path: string) => {
@@ -58,7 +64,6 @@ export default function AssetsScreen() {
     };
 
     // Helper to extract the slug after the **first** slash
-    // If you want **after the last slash**, use lastIndexOf('/') instead.
     const extractAfterFirstSlash = (scanned: string) => {
         const i = scanned.indexOf('/');
         return i === -1 ? scanned : scanned.slice(i + 1);
@@ -77,7 +82,8 @@ export default function AssetsScreen() {
                 }
 
                 const finalUrl = joinUrl(base, slug);
-                setUrl(finalUrl); // this will re-render and navigate the WebView
+                setUrl(finalUrl); // navigate WebView
+                setReloadKey(prev => prev + 1); // ensure reload
             } catch (e) {
                 console.error(e);
                 setError('Invalid QR code');
@@ -88,24 +94,52 @@ export default function AssetsScreen() {
         return () => eventBus.off('barcode-scanned', handleScanned);
     }, [serverUrl, url]);
 
+    // Handle Android back button
     useEffect(() => {
         if (Platform.OS !== 'android') return;
 
         const sub = BackHandler.addEventListener('hardwareBackPress', () => {
             if (canGoBack && webRef.current) {
                 webRef.current.goBack();
-                return true; // we've handled it
+                return true;
             }
-            return false; // let the default behavior run
+            return false;
         });
 
         return () => sub.remove();
     }, [canGoBack]);
 
+    async function handleWebViewMessage(event: WebViewMessageEvent) {
+        try {
+            const data = JSON.parse(event.nativeEvent.data);
+
+            if (data.type === 'download' && data.base64 && data.filename) {
+                const permission = await MediaLibrary.requestPermissionsAsync();
+                if (!permission.granted) {
+                    alert('Permission to access media library is required.');
+                    return;
+                }
+
+                const base64Data = data.base64.replace(/^data:image\/png;base64,/, '');
+                const fileUri = FileSystem.documentDirectory + data.filename;
+
+                await FileSystem.writeAsStringAsync(fileUri, base64Data, {
+                    encoding: FileSystem.EncodingType.Base64,
+                });
+
+                const asset = await MediaLibrary.createAssetAsync(fileUri);
+                await MediaLibrary.createAlbumAsync('Downloads', asset, false);
+
+                alert('Downloaded to device successfully.');
+            }
+        } catch (err) {
+            console.error('Failed to save download:', err);
+        }
+    }
+
     const injectedJS = `
     document.documentElement.setAttribute('data-bs-theme', '${colorScheme === 'dark' ? 'dark' : 'light'}');
-    true;
-  `;
+    true;`;
 
     if (error) {
         return (
@@ -132,6 +166,7 @@ export default function AssetsScreen() {
                         if (saved) {
                             setServerUrl(saved);
                             setUrl(saved);
+                            setReloadKey(prev => prev + 1);
                             setError(null);
                         }
                     }}
@@ -153,11 +188,13 @@ export default function AssetsScreen() {
                 <View style={{ height: StatusBar.currentHeight, backgroundColor: '#0d6efd' }} />
             )}
             <WebView
+                key={`${url}-${reloadKey}`}  // Force remount on URL change
                 source={{ uri: url }}
                 ref={webRef}
                 injectedJavaScript={injectedJS}
                 javaScriptEnabled
                 domStorageEnabled
+                onMessage={handleWebViewMessage}
                 onError={() => setError('WebView load error')}
                 onHttpError={(e) => setError(`HTTP error: ${e.nativeEvent.statusCode}`)}
                 onNavigationStateChange={(navState) => {

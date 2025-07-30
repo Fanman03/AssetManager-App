@@ -81,7 +81,13 @@ export const ScannerModal: React.FC<Props> = ({ visible, onClose, onScan }) => {
               <View style={styles.overlayRow} />
               <View style={styles.overlayCenterRow}>
                 <View style={styles.overlaySide} />
-                <View style={styles.overlayTarget} />
+                <View style={styles.scanArea}>
+                  {/* Corners */}
+                  <View style={[styles.corner, styles.topLeft]} />
+                  <View style={[styles.corner, styles.topRight]} />
+                  <View style={[styles.corner, styles.bottomLeft]} />
+                  <View style={[styles.corner, styles.bottomRight]} />
+                </View>
                 <View style={styles.overlaySide} />
               </View>
               <View style={styles.overlayRow} />
@@ -99,7 +105,11 @@ export const ScannerModal: React.FC<Props> = ({ visible, onClose, onScan }) => {
         )}
 
         <TouchableOpacity onPress={handleClose} style={styles.closeBtn}>
-          <Text style={styles.closeText}>Close</Text>
+          <MaterialCommunityIcons
+            name="close"
+            size={22}
+            color="#fff"
+          />
         </TouchableOpacity>
       </View>
     </Modal>
@@ -110,18 +120,18 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   closeBtn: {
     position: 'absolute',
-    top: 20,
-    right: 20,
+    bottom: 40,
+    right: 40,
     backgroundColor: '#00000088',
-    paddingHorizontal: 16,
+    paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 20,
   },
   closeText: { color: '#fff', fontWeight: '600' },
   torchBtn: {
     position: 'absolute',
-    top: 20,
-    left: 20,
+    bottom: 40,
+    left: 40,
     backgroundColor: '#00000088',
     paddingHorizontal: 12,
     paddingVertical: 8,
@@ -138,4 +148,45 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     backgroundColor: 'transparent',
   },
+  scanArea: {
+    width: 200,
+    height: '100%',
+    backgroundColor: 'transparent',
+    position: 'relative',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  corner: {
+    position: 'absolute',
+    width: 30,
+    height: 30,
+    borderColor: 'white',
+    borderWidth: 4,
+  },
+
+  topLeft: {
+    top: 0,
+    left: 0,
+    borderRightWidth: 0,
+    borderBottomWidth: 0,
+  },
+  topRight: {
+    top: 0,
+    right: 0,
+    borderLeftWidth: 0,
+    borderBottomWidth: 0,
+  },
+  bottomLeft: {
+    bottom: 0,
+    left: 0,
+    borderRightWidth: 0,
+    borderTopWidth: 0,
+  },
+  bottomRight: {
+    bottom: 0,
+    right: 0,
+    borderLeftWidth: 0,
+    borderTopWidth: 0,
+  }
 });
