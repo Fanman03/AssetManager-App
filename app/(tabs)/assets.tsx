@@ -114,21 +114,23 @@ export default function AssetsScreen() {
             const data = JSON.parse(event.nativeEvent.data);
 
             if (data.type === 'download' && data.base64 && data.filename) {
-                const permission = await MediaLibrary.requestPermissionsAsync();
+                const permission = await MediaLibrary.requestPermissionsAsync(false, ['photo']);
                 if (!permission.granted) {
                     alert('Permission to access media library is required.');
                     return;
                 }
 
-                const base64Data = data.base64.replace(/^data:image\/png;base64,/, '');
-                const fileUri = FileSystem.documentDirectory + data.filename;
+                const base64Data = data.base64.replace(/^data:image\/(png|jpeg);base64,/, '');
+                const fileUri = FileSystem.cacheDirectory + data.filename; // Use cacheDirectory to avoid gallery duplication
 
                 await FileSystem.writeAsStringAsync(fileUri, base64Data, {
                     encoding: FileSystem.EncodingType.Base64,
                 });
 
                 const asset = await MediaLibrary.createAssetAsync(fileUri);
-                await MediaLibrary.createAlbumAsync('Downloads', asset, false);
+
+                // Save to Download album (or create it if it doesn't exist)
+                await MediaLibrary.createAlbumAsync('Download', asset, false);
 
                 alert('Downloaded to device successfully.');
             }

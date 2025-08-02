@@ -2,7 +2,7 @@
   "expo": {
     "name": "Asset Manager",
     "slug": "AssetManager",
-    "version": "1.2.0",
+    "version": "1.3.0",
     "orientation": "default",
     "icon": "./assets/images/icon.png",
     "scheme": "assetmanager",
@@ -16,7 +16,7 @@
         "dark": "./assets/images/adaptive-icon.png",
         "tinted": "./assets/images/icon-tinted.png"
       },
-      "buildNumber": "1.2.0"
+      "buildNumber": "1.3.0"
     },
     "android": {
       "adaptiveIcon": {
@@ -29,7 +29,7 @@
         "android.permission.WRITE_EXTERNAL_STORAGE"
       ],
       "package": "com.jacklrpendleton.AssetManager",
-      "versionCode": 3
+      "versionCode": 4
     },
     "web": {
       "bundler": "metro",

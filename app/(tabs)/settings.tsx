@@ -4,7 +4,17 @@ import { clearServerUrl, getServerUrl } from '@/lib/storage';
 import Constants from 'expo-constants';
 import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, Image, StyleSheet, Text, useColorScheme, View } from 'react-native';
+import {
+    ActivityIndicator,
+    Alert,
+    Image,
+    ScrollView,
+    StyleSheet,
+    Text,
+    useColorScheme,
+    useWindowDimensions,
+    View,
+} from 'react-native';
 
 type ServerInfo = { version?: string, appName?: string };
 
@@ -23,6 +33,8 @@ export default function SettingsScreen() {
     const [serverName, setServerName] = useState<string | null>(null);
     const [serverErr, setServerErr] = useState<string | null>(null);
     const [loadingServerVersion, setLoadingServerVersion] = useState<boolean>(true);
+    const { width, height } = useWindowDimensions();
+    const isLandscape = width > height;
 
     useEffect(() => {
         let cancelled = false;
@@ -82,75 +94,103 @@ export default function SettingsScreen() {
     };
 
     return (
-        <View style={[styles.container, isDark ? styles.bgDark : styles.bgLight]}>
-            <View style={styles.header}>
-                <Image
-                    source={require('@/assets/images/icon.png')}
-                    style={styles.appIcon}
-                    resizeMode="contain"
-                />
-                <View>
-                    <Text style={[styles.headerText, isDark ? styles.textLight : styles.textDark]}>
-                        Asset Manager
-                    </Text>
-                    <Text style={[styles.headerSubtext, isDark ? styles.textLight : styles.textDark]}>
-                        by Jack Pendleton
-                    </Text>
-                </View>
-            </View>
-            <Text style={[styles.title, isDark ? styles.textLight : styles.textDark]}>
-                App Settings
-            </Text>
-            <BootstrapButton
-                variant="danger"
-                size="md"
-                onPress={onResetPress}
+        <View
+            style={[
+                styles.outerContainer,
+                isDark ? styles.bgDark : styles.bgLight,
+            ]}
+        >
+            <ScrollView
+                contentContainerStyle={[
+                    styles.contentContainer,
+                    isLandscape && styles.innerContainerLandscape,
+                ]}
             >
-                Reset Server URL
-            </BootstrapButton>
-            <Text style={[styles.version, isDark ? styles.textLight : styles.textDark]}>
-                Client Version: v{clientVersion}
-            </Text>
-
-            <Text style={[styles.title, isDark ? styles.textLight : styles.textDark]}>
-                Server Settings
-            </Text>
-            <BootstrapButton
-                variant="primary"
-                size="md"
-                onPress={onSettingsPress}
-            >
-                Open Server Settings
-            </BootstrapButton>
-
-            {loadingServerVersion ? (
-                <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}>
-                    <ActivityIndicator size="small" color={isDark ? '#f8f9fa' : '#212529'} />
-                    <Text style={[styles.version, isDark ? styles.textLight : styles.textDark, { marginLeft: 8 }]}>
-                        Fetching server info
-                    </Text>
+                <View style={styles.header}>
+                    <Image
+                        source={require('@/assets/images/icon.png')}
+                        style={styles.appIcon}
+                        resizeMode="contain"
+                    />
+                    <View>
+                        <Text style={[styles.headerText, isDark ? styles.textLight : styles.textDark]}>
+                            Asset Manager
+                        </Text>
+                        <Text style={[styles.headerSubtext, isDark ? styles.textLight : styles.textDark]}>
+                            by Jack Pendleton
+                        </Text>
+                    </View>
                 </View>
-            ) : serverErr ? (
-                <Text style={[styles.version, styles.error, isDark ? styles.textLight : styles.textDark]}>
-                    Server Version: {serverErr}
+                <Text style={[styles.title, isDark ? styles.textLight : styles.textDark]}>
+                    App Settings
                 </Text>
-            ) : (
-                <>
-                    <Text style={[styles.version, isDark ? styles.textLight : styles.textDark]}>
-                        Server Name: {serverName}
-                    </Text>
-                    <Text style={[styles.version, isDark ? styles.textLight : styles.textDark]}>
-                        Server Version: v{serverVersion}
-                    </Text>
-                </>
+                <BootstrapButton
+                    variant="danger"
+                    size="md"
+                    onPress={onResetPress}
+                >
+                    Reset Server URL
+                </BootstrapButton>
+                <Text style={[styles.version, isDark ? styles.textLight : styles.textDark]}>
+                    Client Version: v{clientVersion}
+                </Text>
 
-            )}
+                <Text style={[styles.title, isDark ? styles.textLight : styles.textDark]}>
+                    Server Settings
+                </Text>
+                <BootstrapButton
+                    variant="primary"
+                    size="md"
+                    onPress={onSettingsPress}
+                >
+                    Open Server Settings
+                </BootstrapButton>
+
+                {loadingServerVersion ? (
+                    <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}>
+                        <ActivityIndicator size="small" color={isDark ? '#f8f9fa' : '#212529'} />
+                        <Text style={[styles.version, isDark ? styles.textLight : styles.textDark, { marginLeft: 8 }]}>
+                            Fetching server info
+                        </Text>
+                    </View>
+                ) : serverErr ? (
+                    <Text style={[styles.version, styles.error, isDark ? styles.textLight : styles.textDark]}>
+                        Server Version: {serverErr}
+                    </Text>
+                ) : (
+                    <>
+                        <Text style={[styles.version, isDark ? styles.textLight : styles.textDark]}>
+                            Server Name: {serverName}
+                        </Text>
+                        <Text style={[styles.version, isDark ? styles.textLight : styles.textDark]}>
+                            Server Version: v{serverVersion}
+                        </Text>
+                    </>
+                )}
+            </ScrollView>
         </View>
     );
 }
 
 const styles = StyleSheet.create({
+    outerContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        padding: 20,
+    },
+    innerContainerLandscape: {
+        maxWidth: 480,
+        width: '100%',
+        marginLeft: 100
+    },
+    container: {
+        flex: 1,
+    },
+    contentContainer: {
+        justifyContent: 'center',
+    },
     header: {
+        marginTop: 40,
         flexDirection: 'row',
         alignItems: 'center',
         marginBottom: 20,
@@ -167,11 +207,6 @@ const styles = StyleSheet.create({
     },
     headerSubtext: {
         marginTop: -4
-    },
-    container: {
-        flex: 1,
-        justifyContent: 'center',
-        padding: 20,
     },
     bgLight: {
         backgroundColor: '#f8f9fa',
