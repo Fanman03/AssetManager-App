@@ -36,14 +36,6 @@
       "output": "static",
       "favicon": "./assets/images/favicon.png"
     },
-    "cli": {
-      "appVersionSource": "remote"
-    },
-    "build": {
-      "production": {
-        "autoIncrement": false
-      }
-    },
     "plugins": [
       "expo-router",
       [
