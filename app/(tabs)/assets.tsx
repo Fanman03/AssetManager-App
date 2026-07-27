@@ -114,7 +114,7 @@ export default function AssetsScreen() {
             const data = JSON.parse(event.nativeEvent.data);
 
             if (data.type === 'download' && data.base64 && data.filename) {
-                const permission = await MediaLibrary.requestPermissionsAsync(false, ['photo']);
+                const permission = await MediaLibrary.requestPermissionsAsync(true, ['photo']);
                 if (!permission.granted) {
                     alert('Permission to access media library is required.');
                     return;
