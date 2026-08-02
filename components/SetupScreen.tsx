@@ -1,4 +1,6 @@
 import BootstrapButton from '@/components/BootstrapButton';
+import { ScannerModal } from '@/components/ScannerModal';
+import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import {
   StyleSheet,
@@ -20,16 +22,17 @@ export const SetupScreen: React.FC<Props> = ({ onDone }) => {
   const [url, setUrl] = useState('');
   const [submitBusy, setSubmitBusy] = useState(false);
   const [demoBusy, setDemoBusy] = useState(false);
+  const [scannerOpen, setScannerOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const { width, height } = useWindowDimensions();
   const isLandscape = width > height;
 
-  async function handleSubmit() {
+  async function submitUrl(candidateUrl: string) {
     setError(null);
     setSubmitBusy(true);
-    const ok = await validateServer(url);
+    const ok = await validateServer(candidateUrl);
     setSubmitBusy(false);
     if (!ok) {
       setError(
@@ -37,7 +40,27 @@ export const SetupScreen: React.FC<Props> = ({ onDone }) => {
       );
       return;
     }
-    onDone(url.replace(/\/+$/, ''));
+    onDone(candidateUrl.replace(/\/+$/, ''));
+  }
+
+  async function handleSubmit() {
+    await submitUrl(url);
+  }
+
+  function handleServerQrScan(data: string) {
+    const scannedUrl = data.trim();
+    try {
+      const parsedUrl = new URL(scannedUrl);
+      if (parsedUrl.protocol !== 'http:' && parsedUrl.protocol !== 'https:') {
+        throw new Error('Unsupported URL protocol');
+      }
+    } catch {
+      setError('This QR code does not contain a valid HTTP or HTTPS server URL.');
+      return;
+    }
+
+    setUrl(scannedUrl);
+    void submitUrl(scannedUrl);
   }
 
   async function setupDemo() {
@@ -68,6 +91,9 @@ export const SetupScreen: React.FC<Props> = ({ onDone }) => {
         <Text style={[styles.title, isDark ? styles.textLight : styles.textDark]}>
           Enter your server URL:
         </Text>
+        <Text style={[styles.helpText, isDark ? styles.textLight : styles.textDark]}>
+          Scan a pairing QR code from the server's Settings page, or enter the server URL manually.
+        </Text>
         <TextInput
           autoCapitalize="none"
           autoCorrect={false}
@@ -87,10 +113,21 @@ export const SetupScreen: React.FC<Props> = ({ onDone }) => {
           <BootstrapButton
             variant="primary"
             size="md"
+            onPress={() => setScannerOpen(true)}
+            disabled={submitBusy || demoBusy}
+            block
+            leftIcon={<Ionicons name="scan-outline" size={20} color="#fff" />}
+          >
+            Scan QR Code
+          </BootstrapButton>
+          <BootstrapButton
+            variant="secondary"
+            size="md"
             onPress={handleSubmit}
-            disabled={submitBusy}
-            style={{ marginRight: 20 }}
+            disabled={submitBusy || demoBusy}
             loading={submitBusy}
+            block
+            leftIcon={<Ionicons name="checkmark-circle-outline" size={20} color="#fff" />}
           >
             Submit
           </BootstrapButton>
@@ -98,13 +135,24 @@ export const SetupScreen: React.FC<Props> = ({ onDone }) => {
             variant="secondary"
             size="md"
             onPress={setupDemo}
-            disabled={demoBusy}
+            disabled={submitBusy || demoBusy}
             loading={demoBusy}
+            block
+            leftIcon={<Ionicons name="play-circle-outline" size={20} color="#fff" />}
           >
             Demo Mode
           </BootstrapButton>
         </View>
       </View>
+      <ScannerModal
+        visible={scannerOpen}
+        onClose={() => setScannerOpen(false)}
+        onScan={({ data }) => handleServerQrScan(data)}
+        barcodeTypes={['qr']}
+        normalizeScannedData={false}
+        returnToAssets={false}
+        emitBarcodeEvent={false}
+      />
     </View>
   );
 };
@@ -132,6 +180,9 @@ const styles = StyleSheet.create({
     fontSize: 20,
     marginBottom: 16,
     fontWeight: '600',
+  },
+  helpText: {
+    marginBottom: 12,
   },
   textLight: {
     color: '#f8f9fa',
@@ -162,9 +213,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   buttonRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
+    alignItems: 'stretch',
     marginTop: 16,
   },
 });

@@ -1,8 +1,9 @@
 // app/_layout.tsx
 import eventBus from '@/lib/eventBus';
+import { supportsBatchEdit } from '@/lib/serverFeatures';
 import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { LogBox, useColorScheme } from 'react-native';
 
 LogBox.ignoreLogs([
@@ -12,6 +13,11 @@ LogBox.ignoreLogs([
 export default function TabLayout() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
+  const [batchEditAvailable, setBatchEditAvailable] = useState(false);
+
+  useEffect(() => {
+    void supportsBatchEdit().then(setBatchEditAvailable);
+  }, []);
 
   return (
     <Tabs
@@ -55,6 +61,16 @@ export default function TabLayout() {
           title: 'Scanner',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="scan-outline" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="batch-edit"
+        options={{
+          href: batchEditAvailable ? undefined : null,
+          title: 'Batch Edit',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="create-outline" size={size} color={color} />
           ),
         }}
       />

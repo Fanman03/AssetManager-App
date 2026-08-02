@@ -1,3 +1,4 @@
+import { normalizeBarcodeData } from '@/lib/barcodes';
 import eventBus from '@/lib/eventBus';
 import { MaterialCommunityIcons } from '@expo/vector-icons'; // <-- NEW
 import { BarcodeScanningResult, CameraView, useCameraPermissions } from 'expo-camera';
@@ -10,9 +11,21 @@ type Props = {
   visible: boolean;
   onClose: () => void;
   onScan: (data: { type: string; data: string }) => void;
+  barcodeTypes?: ('datamatrix' | 'qr')[];
+  normalizeScannedData?: boolean;
+  returnToAssets?: boolean;
+  emitBarcodeEvent?: boolean;
 };
 
-export const ScannerModal: React.FC<Props> = ({ visible, onClose, onScan }) => {
+export const ScannerModal: React.FC<Props> = ({
+  visible,
+  onClose,
+  onScan,
+  barcodeTypes = ['datamatrix'],
+  normalizeScannedData = true,
+  returnToAssets = true,
+  emitBarcodeEvent = true,
+}) => {
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
   const [torchEnabled, setTorchEnabled] = useState(false); // <-- NEW
@@ -33,22 +46,29 @@ export const ScannerModal: React.FC<Props> = ({ visible, onClose, onScan }) => {
     async ({ type, data }: BarcodeScanningResult) => {
       if (scanned) return;
       setScanned(true);
+      const scannedData = normalizeScannedData ? normalizeBarcodeData(data) : data;
 
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 
-      eventBus.emit('barcode-scanned', data);
-      router.replace('/assets');
+      if (emitBarcodeEvent) {
+        eventBus.emit('barcode-scanned', scannedData);
+      }
+      if (returnToAssets) {
+        router.replace('/assets');
+      }
 
-      onScan({ type, data });
+      onScan({ type, data: scannedData });
       onClose();
     },
-    [scanned, onScan, onClose, router]
+    [scanned, onScan, onClose, router, normalizeScannedData, emitBarcodeEvent, returnToAssets]
   );
 
   const handleClose = useCallback(() => {
-    router.replace('/assets');
+    if (returnToAssets) {
+      router.replace('/assets');
+    }
     onClose();
-  }, [router, onClose]);
+  }, [router, onClose, returnToAssets]);
 
   const toggleTorch = useCallback(() => {
     setTorchEnabled((t) => !t);
@@ -70,10 +90,10 @@ export const ScannerModal: React.FC<Props> = ({ visible, onClose, onScan }) => {
             <CameraView
               style={StyleSheet.absoluteFillObject}
               facing="back"
-              enableTorch={torchEnabled} // <-- CHANGED
+              enableTorch={torchEnabled}
               onBarcodeScanned={scanned ? undefined : handleBarCodeScanned}
               barcodeScannerSettings={{
-                barcodeTypes: ['datamatrix'],
+                barcodeTypes,
               }}
             />
             {/* Overlay */}

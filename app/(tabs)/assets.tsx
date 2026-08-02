@@ -1,7 +1,7 @@
 import BootstrapButton from '@/components/BootstrapButton';
 import eventBus from '@/lib/eventBus';
 import { getServerUrl } from '@/lib/storage';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import * as MediaLibrary from 'expo-media-library';
 import React, { useEffect, useRef, useState } from 'react';
 import {
@@ -94,6 +94,24 @@ export default function AssetsScreen() {
         return () => eventBus.off('barcode-scanned', handleScanned);
     }, [serverUrl, url]);
 
+    // Batch scans navigate to the web batch-edit screen, which resolves each raw
+    // Data Matrix payload and preselects the matching assets.
+    useEffect(() => {
+        const handleBatchScanned = (barcodes: string[]) => {
+            const base = serverUrl ?? url ?? '';
+            if (!base || barcodes.length === 0) return;
+
+            const params = new URLSearchParams();
+            barcodes.forEach((barcode) => params.append('barcodes', barcode));
+            setUrl(`${joinUrl(base, 'batch-edit')}?${params.toString()}`);
+            setReloadKey((prev) => prev + 1);
+            setError(null);
+        };
+
+        eventBus.on('batch-barcodes-scanned', handleBatchScanned);
+        return () => eventBus.off('batch-barcodes-scanned', handleBatchScanned);
+    }, [serverUrl, url]);
+
     // Handle Android back button
     useEffect(() => {
         if (Platform.OS !== 'android') return;
@@ -114,15 +132,40 @@ export default function AssetsScreen() {
             const data = JSON.parse(event.nativeEvent.data);
 
             if (data.type === 'download' && data.base64 && data.filename) {
-                const permission = await MediaLibrary.requestPermissionsAsync(true, ['photo']);
-                if (!permission.granted) {
-                    alert('Permission to access media library is required.');
+                const dataUrlMatch = /^data:([^;]+);base64,([\s\S]+)$/.exec(data.base64);
+                const mimeType = dataUrlMatch?.[1] ?? 'image/png';
+                const base64Data = dataUrlMatch?.[2] ?? data.base64;
+                const filename = data.filename.replace(/[\\/:*?"<>|]/g, '_');
+
+                if (Platform.OS === 'android') {
+                    // The Storage Access Framework shows Android's system folder picker and
+                    // grants access only to the location the user selects. It doesn't require
+                    // READ_MEDIA_IMAGES, READ_MEDIA_VIDEO, or legacy storage permissions.
+                    const directory = await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync();
+                    if (!directory.granted) {
+                        return;
+                    }
+
+                    const destination = await FileSystem.StorageAccessFramework.createFileAsync(
+                        directory.directoryUri,
+                        filename,
+                        mimeType,
+                    );
+                    await FileSystem.StorageAccessFramework.writeAsStringAsync(destination, base64Data, {
+                        encoding: FileSystem.EncodingType.Base64,
+                    });
+
+                    alert('Downloaded barcode to the selected folder successfully.');
                     return;
                 }
 
-                const base64Data = data.base64.replace(/^data:image\/(png|jpeg);base64,/, '');
-                const fileUri = FileSystem.cacheDirectory + data.filename; // Use cacheDirectory to avoid gallery duplication
+                const permission = await MediaLibrary.requestPermissionsAsync(true, ['photo']);
+                if (!permission.granted) {
+                    alert('Permission to save to the media library is required.');
+                    return;
+                }
 
+                const fileUri = FileSystem.cacheDirectory + filename;
                 await FileSystem.writeAsStringAsync(fileUri, base64Data, {
                     encoding: FileSystem.EncodingType.Base64,
                 });
